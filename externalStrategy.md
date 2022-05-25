@@ -24,7 +24,7 @@ The automation can be done by any account which allows for more flexibility. For
 
 
 ### Technical specification
-Apart from implementing the IExternalPosition interface, each External strategy will also inherit from [ExternalStrategyBase](). 
+Apart from implementing the IExternalPosition interface, each External strategy will also inherit from [ExternalStrategyBase](https://github.com/exponent-cx/external-strategy/blob/main/contracts/ExternalStrategy/ExternalStrategyBase.sol). 
 
 List of action that a vault can execute via receiveCallFromVault:
  
@@ -37,10 +37,12 @@ List of action that a vault can execute via receiveCallFromVault:
 
 - Automate (optional): Automate allows 3rd party to automate tasks based on behalf of fund manager. This function allow anyone to call and takes 0 argument. and will execute based on manager's config and predefined strategy. Some strategy might also allow manager to set a bounty for the caller.
 
-Parsing with [UniversalParser]()
+Parsing with [UniversalParser](https://github.com/exponent-cx/external-strategy/blob/main/contracts/ExternalStrategy/UniversalParser.sol)
 all external strategy can use the same universalExternalStrategyParser which will forward the call to each external strategy contract.
 
 each externalStrategy will implement parseEnter, parseReduce, and parseAdminExecute that parse corresponding action data. others action already implemented in the universalParser.
+
+the contract can be found [here](https://polygonscan.com/address/0x1b8f25c3e1abcf8d89fa25ac2ff817af6120631e)
 
 ### AMM LP Auto Compound Strategy
 the first external strategy we provide is auto compound on Sushiswap LP Staking
@@ -58,5 +60,5 @@ configuable param:
 - bool allowAutomate - allow automate
 
 
-the contract can be found [here]()
+the contract can be found [here](https://polygonscan.com/address/0x332a93f042a6359639dc24c77409672e22997ac8)
 
