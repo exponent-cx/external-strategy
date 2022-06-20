@@ -1,4 +1,4 @@
-## External strategy (request for comment)
+## External strategy (revised) 
 
 ### Abstract
 Enzyme creates a strong foundation for a wide range of fund managers to build upon, but with the diversity of managers ranged from a sophisticated fund running proprietary system to small team, lone managers, and even protocol/DAO/Multi-sig. There's a clear gap in the ability to run a fund efficiently. A system can run 24/7 and easily construct series of transaction to accomplish complex strategy in near real time. Meanwhile, protocols or DAOs that rely on smart contract integration or multi-sig would have a significant limitation to their ability to monitor or transact on such fund.
@@ -19,28 +19,36 @@ Each external strategy will be a smart contract. Implemented strategy will share
 
 The automation can be done by any account which allows for more flexibility. For example, a multi-sig can deploy a strategy, but use another EOA to maintain the position, thus bypassing the cumbersome multi-sig signing workflow. Managers can set up bounties that invite MEV searcher to help with the task, or work with any technology provider, such as the Exponent team, to facilitate strategy automation.
 
-![](imgs/overview.png)
-
-
+To ensure the quality of strategies. External Strategy Council (ESC) will review new strategies and maintain a Registry of qualified strategies and their specific information. This can be used with Enzyme's Asset Management Restrictions to ensure users that a Vault will operate on only a subset of external strategies that fit with predefined criteria.
+![](imgs/overview2.png)
 
 ### Technical specification
-Apart from implementing the IExternalPosition interface, each External strategy will also inherit from [ExternalStrategyBase](https://github.com/exponent-cx/external-strategy/blob/main/contracts/ExternalStrategy/ExternalStrategyBase.sol). 
 
-List of action that a vault can execute via receiveCallFromVault:
+`ExternalStrategyRegistry` will keep track of registered strategies along with their corresponding flags (uint256). This contract is ownable and will be maintained by the ESC. at the initial release, we will only use the flag to signify that it's registered. but the design can support up to 256 bits of information. [Registry]()
+
+`ExternalStrategyLib` will be a modified proxy contract that will have a set of rules e.g. registered strategies only. On initialization, it will take in a target strategy address and verify it with the Registry and will revert if the criteria are not met. If criteria met it will behave like a normal proxy. on the initial release, there will be only one `ExternalStrategyLib` that only allows registered strategies.
+[ExternalStrategyLib]()
+
+*note: ExternalStrategyLib will use storage slot `keccak256("Fennec's spot!")`(`0x7337df092c0316084d76a4326136350931be81e811e39e9a6a73eff5aa1555eb`) to avoid storage collision with others contracts.*
+
+
+for each strategy apart from implementing the `IExternalPosition` interface, each External strategy will also inherit from [ExternalStrategyBase](https://github.com/exponent-cx/external-strategy/blob/main/contracts/ExternalStrategy/ExternalStrategyBase.sol). 
+
+List of action that a vault can execute via `receiveCallFromVault`:
  
-- Enter: allows fund manager to deploy fund and execute the strategy
-- Reduce: allows fund manager to unwind strategy.
-- Withdraw: allows fund manager to return assets back to the main fund.
+- `Enter`: allows fund manager to deploy fund and execute the strategy
+- `Reduce`: allows fund manager to unwind strategy.
+- `Withdraw`: allows fund manager to return assets back to the main fund.
 
-- Config (optional): allows fund manager to change parameter for a strategy. Note that configurable parameter will be different for each contract and some strategy might not require any configuration. 
-- AdminExecute (optional): for some strategy that might allow fund manager to do others action. 
+- `Config` (optional): allows fund manager to change parameter for a strategy. Note that configurable parameter will be different for each contract and some strategy might not require any configuration. 
+- `AdminExecute` (optional): for some strategy that might allow fund manager to do others action. 
 
-- Automate (optional): Automate allows 3rd party to automate tasks based on behalf of fund manager. This function allow anyone to call and takes 0 argument. and will execute based on manager's config and predefined strategy. Some strategy might also allow manager to set a bounty for the caller.
+- `Automate` (optional): Automate allows 3rd party to automate tasks based on behalf of fund manager. This function allow anyone to call and takes 0 argument. and will execute based on manager's config and predefined strategy. Some strategy might also allow manager to set a bounty for the caller.
 
 Parsing with [UniversalParser](https://github.com/exponent-cx/external-strategy/blob/main/contracts/ExternalStrategy/UniversalParser.sol)
-all external strategy can use the same universalExternalStrategyParser which will forward the call to each external strategy contract.
+all external strategy can use the same `universalParser` which will forward the call to each external strategy contract.
 
-each externalStrategy will implement parseEnter, parseReduce, and parseAdminExecute that parse corresponding action data. others action already implemented in the universalParser.
+each `externalStrategy` will implement `parseEnter`, `parseReduce`, and `parseAdminExecute` that parse corresponding action data. others action already implemented in the `universalParser`.
 
 the contract can be found [here](https://polygonscan.com/address/0x1b8f25c3e1abcf8d89fa25ac2ff817af6120631e)
 
