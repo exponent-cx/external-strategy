@@ -21,6 +21,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../IExternalPosition.sol";
+import "../interface/IVault.sol";
 
 /// @title ExternalStrategyBase
 /// @author Exponent team
@@ -37,9 +38,13 @@ contract ExternalStrategyBase is IExternalPosition {
 
     constructor() {}
 
+    address public vaultAddress;
+
     /// @notice Initializes the external position
     /// @dev We don't do that here
-    function init(bytes memory) external override {}
+    function init(bytes memory) external override {
+        vaultAddress = msg.sender;
+    }
 
     /// @notice Receives and executes a call from the Vault
     /// @param _actionData Encoded data to execute the action
@@ -80,6 +85,18 @@ contract ExternalStrategyBase is IExternalPosition {
 
     /// @dev Return any asset to vault.
     function __AdminWithdraw(bytes memory actionArgs) internal {
+        (address[] memory tokens, uint256[] memory amounts) = abi.decode(
+            actionArgs,
+            (address[], uint256[])
+        );
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).safeTransfer(msg.sender, amounts[i]);
+        }
+    }
+
+    /// @dev Return any asset to vault.
+    function emergencyWithdraw(bytes memory actionArgs) public {
+        require(msg.sender == IVault(vaultAddress).getOwner(), "not owner");
         (address[] memory tokens, uint256[] memory amounts) = abi.decode(
             actionArgs,
             (address[], uint256[])
